@@ -7,6 +7,7 @@ import customtkinter as ct
 conn = pyodbc.connect(driver = '{SQL Server}',server = 'EHOTEZPC' , database = 'dbCHOP', user = 'sa', password = 'sa')
 cur = conn.cursor()
 
+
 ct.set_appearance_mode('dark')
 ct.set_default_color_theme('blue')
 
