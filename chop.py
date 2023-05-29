@@ -1,6 +1,4 @@
-from tkinter.tix import COLUMN
 import pyodbc
-import tkinter as tk
 import customtkinter as ct
 
 # Установление соединения с базой данной
@@ -20,7 +18,6 @@ while(1):
     res1 = res.split(',')
     clients[res1[1]] = res1[0]
 
-
 app = ct.CTk()
 app.title('ЧОП')
 app.geometry('1000x600')
@@ -30,7 +27,6 @@ def main_frame(clientId):
     main = ct.CTkFrame(app, fg_color='transparent')
     main.pack(expand=True)
     ct.CTkLabel(main, text='Вы зашли как шнырь номер: '+clientId).grid(row=0,column=0)
-    
 
 #login frame
 login = ct.CTkFrame(app,fg_color='transparent')
@@ -41,9 +37,6 @@ clientBox.grid(column=1,row=0,pady=15)
 button = ct.CTkButton(login, text='Войти', 
                       command=lambda: main_frame(str(clients[clientBox.get()])))
 button.grid(column=1,row=1,pady=15)
-
-#main frame
-
 
 app.mainloop()
 
