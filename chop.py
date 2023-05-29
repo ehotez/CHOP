@@ -1,7 +1,7 @@
 import pyodbc
 import customtkinter as ct
 
-# Установление соединения с базой данной
+# Установление соединения с базой данной HI HI HA HA
 conn = pyodbc.connect(driver = '{SQL Server}',server = 'EHOTEZPC' , database = 'dbCHOP', user = 'sa', password = 'sa')
 cur = conn.cursor()
 
