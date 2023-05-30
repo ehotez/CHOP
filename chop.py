@@ -4,7 +4,7 @@ import customtkinter as ct
 from tkinter.messagebox import NO
 from tkinter import CENTER, ttk
 
-# Установление соединения с базой данной
+# Установление соединения с базой данной HI HI HA HA
 conn = pyodbc.connect(driver = '{SQL Server}',server = 'EHOTEZPC' , database = 'dbCHOP', user = 'sa', password = 'sa')
 cur = conn.cursor()
 
