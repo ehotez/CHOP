@@ -120,8 +120,14 @@ def main_frame(client_id, client_name):
     
     main = ct.CTkFrame(app, fg_color='transparent')
     main.pack()
-    ct.CTkLabel(main, text='Текущий клиент: '+client_name).grid(column=0,row=0)
-    ct.CTkButton(main, text='Сменить клиента', command=log_off).grid(column=1,row=0)
+    ct.CTkLabel(main, text='Текущий клиент: '+client_name).grid(column=10,row=0)
+    ct.CTkButton(main, text='Сменить клиента', command=log_off).grid(column=11,row=0)
+    ct.CTkButton(main, text='Список договоров', command=log_off).grid(column=0,row=0)
+    ct.CTkButton(main, text='Новый договор', command=log_off).grid(column=0,row=1)
+    ct.CTkButton(main, text='Распечатать договор', command=log_off).grid(column=0,row=2)
+    ct.CTkButton(main, text='Список претензий', command=log_off).grid(column=1,row=0)
+    ct.CTkButton(main, text='Новая претензия', command=log_off).grid(column=1,row=1)
+    ct.CTkButton(main, text='Привязать сотрудника к договору', command=log_off).grid(columnspan=2,row=3)
     
     
 login_frame()
