@@ -115,23 +115,126 @@ def login_frame():
 
 def main_frame(client_id, client_name):
 
-    def claim(client_id, client_name):
+    def contract(client_id, client_name): # основная ф-я с договорами
         
+        def form_add_contract(): # добавление договора
+            add_contract = ct.CTkToplevel()
+            add_contract.grab_set()
+            add_contract.title('Заключить договор')
+            add_contract.geometry('500x500')
+            ct.CTkLabel(add_contract, text='ЭТО, ДРУГАЛЕК, РЕАЛИЗУЙ САМ').grid(column=2,row=0)
+
+        def print_contract(*args): # печать договора
+            def ithog_print_contract(): # ф-я, где распечатывается договор (делается pdf-ка)
+                print('ЭТО, ДРУГАЛЕК, РЕАЛИЗУЙ САМ')
+            def close():
+                print_contract.destroy()
+
+            curRow = table.focus()
+            
+            print_contract = ct.CTkToplevel()
+            print_contract.grab_set()
+            print_contract.title('Подтверждение печати')
+            print_contract.geometry('450x100')
+            ct.CTkLabel(print_contract, text='Распечатать договор?').grid(column=2,row=0)
+            ct.CTkButton(print_contract, text='Да', 
+                    command= lambda:ithog_print_contract()).grid(column=0,row=3)
+            ct.CTkButton(print_contract, text='Нет', 
+                    command= close).grid(column=3,row=3)
+            
+        cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount from tblContract where intClientId =?', client_id)
+        contracts = ct.CTkToplevel()
+        contracts.grab_set()
+        contracts.title('Контракт клиента: '+ client_name)
+        contracts.geometry('1000x500')
+        table = ttk.Treeview(contracts,columns=('', 'Start', 'End', 'Flag','', '', '', 'Amount'))
+        table.column('#0', width=0, stretch=NO)
+        table.column('#1', width=0, stretch=NO)
+        table.column('#5', width=0, stretch=NO)
+        table.column('#6', width=0, stretch=NO)
+        table.column('#7', width=0, stretch=NO)
+        table.heading('Start', text='Дата заключения договора', anchor=CENTER)
+        table.heading('End', text='Дата окончания договора', anchor=CENTER)
+        table.heading('Flag', text='Контракт завершен?', anchor=CENTER)
+        table.heading('Amount', text='Кол-во оборудования', anchor=CENTER)
+        table.bind('<Double-Button-1>', print_contract)
+        ct.CTkButton(contracts, text='Заключить договор', 
+                    command= form_add_contract).pack()
+        
+        i=1
+        while(1):
+            result = str(cur.fetchone())
+            if(result == "None"):
+                break
+            j = 0
+            while(j != len(result)):
+                if(result[j] == ' ' and result[j-1] != ','):
+                    result = result[:j] + '_' + result[j + 1:]
+                j+=1
+            replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','')
+            table.insert(parent='',index='end',iid=i, values=replaced)
+            i+=1
+        table.pack()
+
+    def claim(client_id, client_name): # Тут начинаются претензии
+        def change_flag(*args):
+
+            def update_flag(id):
+                try:
+                    cur.execute('update tblClaim set isClaimClosed = 1 where intClaimId = ?', id)
+                    conn.commit()
+                    change_flag.destroy()
+
+                    table.delete(*table.get_children())
+                    cur.execute('select intClaimId, txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
+                    i=1 
+                    while(1): 
+                        result = str(cur.fetchone()) 
+                        if(result == "None"): 
+                            break 
+                        j = 0 
+                        while(j != len(result)): 
+                            if(result[j] == ' ' and result[j-1] != ','): 
+                                result = result[:j] + '_' + result[j + 1:] 
+                            j+=1 
+                        replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','') 
+                        table.insert(parent='',index='end',iid=i, values=replaced) 
+                        i+=1 
+                except:
+                    print('error_claim')
+
+            def close():
+                change_flag.destroy()
+            curRow = table.focus()
+            claim_id = table.item(curRow, 'values')[0]
+            flag = table.item(curRow, 'values')[2]
+            if flag =="True":
+                return
+            change_flag = ct.CTkToplevel()
+            change_flag.grab_set()
+            change_flag.title('Подтверждение изменения')
+            change_flag.geometry('420x100')
+            ct.CTkLabel(change_flag, text='Закрыть претензию?').grid(column=2,row=0)
+            ct.CTkButton(change_flag, text='Да', 
+                    command= lambda:update_flag(claim_id)).grid(column=0,row=3)
+            ct.CTkButton(change_flag, text='Нет', 
+                    command= close).grid(column=3,row=3)
+            print(claim_id, flag)
 
         def form_add_claim():
 
-            def add_claim1(name, flag, date):  
+            def add_claim1(name, date):  
                 
-                if(name == ''or flag == '' or date == '' or (flag !=1 and flag!=0)):
+                if(name == '' or date == ''):
                     return
                 else:
                     try:
-                        cur.execute('INSERT INTO tblClaim VALUES (?,?,?,?)', name, flag, date, client_id)
+                        cur.execute('INSERT INTO tblClaim VALUES (?,?,?,?)', name, 0, date, client_id)
                         conn.commit()
                         add_claim.destroy()
 
                         table.delete(*table.get_children())
-                        cur.execute('select txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
+                        cur.execute('select intClaimId, txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
                         i=1 
                         while(1): 
                             result = str(cur.fetchone()) 
@@ -158,31 +261,28 @@ def main_frame(client_id, client_name):
             ct.CTkLabel(add_claim, text='Наименование претензии:').grid(column=0,row=0)
             name_claim = ct.CTkEntry(add_claim)
             name_claim.grid(column=0,row=1)
-            ct.CTkLabel(add_claim, text='Флаг закрытия:').grid(column=0,row=2)
-            flag_claim = ct.CTkEntry(add_claim)
-            flag_claim.grid(column=0,row=3)
-            ct.CTkLabel(add_claim, text='Дата претензии:').grid(column=0,row=4)
+            ct.CTkLabel(add_claim, text='Дата претензии:').grid(column=0,row=2)
             date_claim = Calendar(add_claim, selectmode = 'day')
-            date_claim.grid(column=0,row=5)
-
+            date_claim.grid(column=0,row=3)
+            
             ct.CTkButton(add_claim, text='Добавить', command=
-                              lambda: add_claim1(name_claim.get(), flag_claim.get(), date_claim.get_date())).grid(column=0,row=8)
+                              lambda: add_claim1(name_claim.get(), date_claim.get_date())).grid(column=0,row=8)
 
             
 
 
-        cur.execute('select txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
+        cur.execute('select intClaimId, txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
         claim = ct.CTkToplevel()
         claim.grab_set()
         claim.title('Претензии клиента: '+ client_name)
         claim.geometry('900x500')
-        table = ttk.Treeview(claim,columns=('Desceiption', 'Flag', 'Date'))
+        table = ttk.Treeview(claim,columns=('', 'Desceiption', 'Flag', 'Date'))
         table.column('#0', width=0, stretch=NO)
-        
+        table.column('#1', width=0, stretch=NO)
         table.heading('Desceiption', text='Наименование претензии', anchor=CENTER)
         table.heading('Flag', text='Флаг закрытия', anchor=CENTER)
         table.heading('Date', text='Дата', anchor=CENTER)
-        
+        table.bind('<Double-Button-1>', change_flag)
         i=1
         while(1):
             result = str(cur.fetchone())
@@ -209,11 +309,11 @@ def main_frame(client_id, client_name):
     main.pack()
     ct.CTkLabel(main, text='Текущий клиент: '+client_name).grid(column=10,row=0)
     ct.CTkButton(main, text='Сменить клиента', command=log_off).grid(column=11,row=0)
-    ct.CTkButton(main, text='Список договоров', command=log_off).grid(column=0,row=0)
-    ct.CTkButton(main, text='Новый договор', command=log_off).grid(column=0,row=1)
-    ct.CTkButton(main, text='Распечатать договор', command=log_off).grid(column=0,row=2)
+    ct.CTkButton(main, text='Список договоров', command=lambda: contract(client_id, client_name)).grid(column=0,row=0)
+    #ct.CTkButton(main, text='Новый договор', command=log_off).grid(column=0,row=1)
+    #ct.CTkButton(main, text='Распечатать договор', command=log_off).grid(column=0,row=2)
     ct.CTkButton(main, text='Список претензий', command= lambda: claim(client_id, client_name)).grid(column=1,row=0)
-    ct.CTkButton(main, text='Новая претензия', command=log_off).grid(column=1,row=1)
+    
     ct.CTkButton(main, text='Привязать сотрудника к договору', command=log_off).grid(columnspan=2,row=3)
     
     
