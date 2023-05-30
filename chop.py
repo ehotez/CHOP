@@ -229,6 +229,11 @@ def main_frame(client_id, client_name):
                     return
                 else:
                     try:
+                        print(date)
+                        date_mas = date.split('/')
+                        date_mas[0], date_mas[1] = date_mas[1], date_mas[0]
+                        print(date_mas)
+                        date = "/".join(date_mas)
                         cur.execute('INSERT INTO tblClaim VALUES (?,?,?,?)', name, 0, date, client_id)
                         conn.commit()
                         add_claim.destroy()
