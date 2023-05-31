@@ -6,7 +6,7 @@ from tkinter.messagebox import NO
 from tkinter import CENTER, LEFT, Frame, ttk
 
 # Установление соединения с базой данной HI HI HA HA
-conn = pyodbc.connect(driver = '{SQL Server}',server = 'EHOTEZPC' , database = 'dbCHOP', user = 'sa', password = 'sa')
+conn = pyodbc.connect(driver = '{SQL Server}',server = 'MSI' , database = 'dbCHOP', user = 'sa', password = 'sa')
 cur = conn.cursor()
 
 ct.set_appearance_mode('dark')
@@ -160,7 +160,15 @@ def main_frame(client_id, client_name):
         contracts.grab_set()
         contracts.title('Контракт клиента: '+ client_name)
         contracts.geometry('1000x500')
-        table = ttk.Treeview(contracts,columns=('', 'Start', 'End', 'Flag','', '', '', 'Amount'))
+        frame = Frame(contracts)
+        frame.pack(pady=20)
+        table = ttk.Treeview(frame,height = 7,columns=('', 'Start', 'End', 'Flag','', '', '', 'Amount'))
+        table.pack(side='left')
+
+        sb = ttk.Scrollbar(frame, orient="vertical", command=table.yview)
+        table.configure(yscrollcommand=sb.set)
+        sb.pack(side="right", fill='y') 
+
         table.column('#0', width=0, stretch=NO)
         table.column('#1', width=0, stretch=NO)
         table.column('#5', width=0, stretch=NO)
@@ -173,6 +181,7 @@ def main_frame(client_id, client_name):
         table.bind('<Double-Button-1>', print_contract)
         ct.CTkButton(contracts, text='Заключить договор', 
                     command= form_add_contract).pack()
+        
         
         i=1
         while(1):
@@ -291,7 +300,15 @@ def main_frame(client_id, client_name):
         claim.grab_set()
         claim.title('Претензии клиента: '+ client_name)
         claim.geometry('900x500')
-        table = ttk.Treeview(claim,columns=('', 'Desceiption', 'Flag', 'Date'))
+        frame = Frame(claim)
+        frame.pack(pady=20)
+        table = ttk.Treeview(frame, height=7,columns=('', 'Desceiption', 'Flag', 'Date'))
+        table.pack(side='left')
+
+        sb = ttk.Scrollbar(frame, orient="vertical", command=table.yview)
+        table.configure(yscrollcommand=sb.set)
+        sb.pack(side="right", fill='y') 
+        
         table.column('#0', width=0, stretch=NO)
         table.column('#1', width=0, stretch=NO)
         table.heading('Desceiption', text='Наименование претензии', anchor=CENTER)
