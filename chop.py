@@ -3,10 +3,10 @@ from tkcalendar import Calendar
 import pyodbc
 import customtkinter as ct
 from tkinter.messagebox import NO
-from tkinter import CENTER, ttk
+from tkinter import CENTER, LEFT, Frame, ttk
 
 # Установление соединения с базой данной HI HI HA HA
-conn = pyodbc.connect(driver = '{SQL Server}',server = 'MSI' , database = 'dbCHOP', user = 'sa', password = 'sa')
+conn = pyodbc.connect(driver = '{SQL Server}',server = 'EHOTEZPC' , database = 'dbCHOP', user = 'sa', password = 'sa')
 cur = conn.cursor()
 
 ct.set_appearance_mode('dark')
@@ -15,6 +15,9 @@ ct.set_default_color_theme('blue')
 app = ct.CTk()
 app.title('ЧОП')
 app.geometry('1000x600')
+
+style = ttk.Style()
+style.configure('Treeview', rowheight=50)
 
 def register():
     def new_client(fio, passport, address, phone):
@@ -33,23 +36,23 @@ def register():
     reg.title('Регистрация клиента')
     reg.geometry('800x400')
     ct.CTkLabel(reg, text='ФИО:').grid(column=0,row=0)
-    fio = ct.CTkEntry(reg)
+    fio = ct.CTkEntry(reg, width=250)
     fio.grid(column=0,row=1)
     ct.CTkLabel(reg, text='Паспортные данные:').grid(column=0,row=2)
     passport = ct.CTkEntry(reg)
     passport.grid(column=0,row=3)
     ct.CTkLabel(reg, text='Адрес проживания:').grid(column=0,row=4)
-    address = ct.CTkEntry(reg)
+    address = ct.CTkEntry(reg,width=250)
     address.grid(column=0,row=5)
     ct.CTkLabel(reg, text='Номер телефона:').grid(column=0,row=6)
     phone = ct.CTkEntry(reg)
     phone.grid(column=0,row=7)
-    ct.CTkButton(reg, text='Новый клиент', command=
-                              lambda: new_client(fio.get(), passport.get(), address.get(), phone.get())).grid(column=0,row=8)
+    ct.CTkButton(reg, text='Создать клиента', command=
+                              lambda: new_client(fio.get(), passport.get(), address.get(), phone.get())).grid(column=0,row=8, pady=15)
     
     # reg.grid_rowconfigure(0, weight=1)
     # reg.grid_rowconfigure(1, weight=1)
-    # reg.grid_columnconfigure(0, weight=1)
+    reg.grid_columnconfigure(0, weight=1)
     # reg.grid_columnconfigure(1, weight=1)
     
     print('reg')
@@ -79,13 +82,23 @@ def login_frame():
         client.grab_set()
         client.title('Список клиентов')
         client.geometry('500x500')
-        table = ttk.Treeview(client,columns=('','Name', 'Phone'))
+        frame = Frame(client)
+        frame.pack(pady=20)
+        table = ttk.Treeview(frame, height=7, columns=('','Name', 'Phone'))
+        table.pack(side='left')
+        
+        sb = ttk.Scrollbar(frame, orient="vertical", command=table.yview)
+        table.configure(yscrollcommand=sb.set)
+        sb.pack(side="right", fill='y') 
+        
         table.column('#0', width=0, stretch=NO)
         table.column('#1', width=0, stretch=NO)
+        table.column('Name', width=230, stretch=NO)
+        table.column('Phone', width=230, stretch=NO)
         table.heading('Name', text='ФИО', anchor=CENTER)
         table.heading('Phone', text='Номер телефона', anchor=CENTER)
         table.bind('<Double-Button-1>', log_in)
-        
+                
         i=1
         while(1):
             result = str(cur.fetchone())
@@ -115,7 +128,7 @@ def login_frame():
 
 def main_frame(client_id, client_name):
 
-    def contract(client_id, client_name): # основная ф-я с договорами
+    def contract(): # основная ф-я с договорами
         
         def form_add_contract(): # добавление договора
             add_contract = ct.CTkToplevel()
@@ -176,7 +189,7 @@ def main_frame(client_id, client_name):
             i+=1
         table.pack()
 
-    def claim(client_id, client_name): # Тут начинаются претензии
+    def claim(): # Тут начинаются претензии
         def change_flag(*args):
 
             def update_flag(id):
@@ -273,9 +286,6 @@ def main_frame(client_id, client_name):
             ct.CTkButton(add_claim, text='Добавить', command=
                               lambda: add_claim1(name_claim.get(), date_claim.get_date())).grid(column=0,row=8)
 
-            
-
-
         cur.execute('select intClaimId, txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
         claim = ct.CTkToplevel()
         claim.grab_set()
@@ -313,13 +323,10 @@ def main_frame(client_id, client_name):
     main = ct.CTkFrame(app, fg_color='transparent')
     main.pack()
     ct.CTkLabel(main, text='Текущий клиент: '+client_name).grid(column=10,row=0)
-    ct.CTkButton(main, text='Сменить клиента', command=log_off).grid(column=11,row=0)
-    ct.CTkButton(main, text='Список договоров', command=lambda: contract(client_id, client_name)).grid(column=0,row=0)
-    #ct.CTkButton(main, text='Новый договор', command=log_off).grid(column=0,row=1)
-    #ct.CTkButton(main, text='Распечатать договор', command=log_off).grid(column=0,row=2)
-    ct.CTkButton(main, text='Список претензий', command= lambda: claim(client_id, client_name)).grid(column=1,row=0)
-    
-    ct.CTkButton(main, text='Привязать сотрудника к договору', command=log_off).grid(columnspan=2,row=3)
+    ct.CTkButton(main, text='Сменить клиента', command=log_off).grid(column=11,row=0, padx=20)
+    ct.CTkButton(main, text='Список договоров', command=contract).grid(column=0,row=0, pady=5)
+    ct.CTkButton(main, text='Список претензий', command=claim).grid(column=0,row=1,pady=5)
+    ct.CTkButton(main, text='Привязать сотрудника к договору', command=log_off).grid(column=0,row=2, pady=5)
     
     
 login_frame()
