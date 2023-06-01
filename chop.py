@@ -131,27 +131,147 @@ def main_frame(client_id, client_name):
     def contract(): # основная ф-я с договорами
         
         def form_add_contract(): # добавление договора
+            
+            def add_contract1(date_start, date_end, servece, emplo, equip, quantity):
+                if(date_start == '' or date_end == '' or servece == ''or emplo == ''or equip == ''or  quantity.isdigit()==False):
+                    return
+                else:
+                    try:
+
+                        date_mas1 = date_start.split('/')
+                        date_mas1[0], date_mas1[1] = date_mas1[1], date_mas1[0]
+                        date_start = "/".join(date_mas1)
+
+                        date_mas1 = date_end.split('/')
+                        date_mas1[0], date_mas1[1] = date_mas1[1], date_mas1[0]
+                        date_end = "/".join(date_mas1)
+
+                        cur.execute('INSERT INTO tblContract VALUES (?,?,?,?,?,?,?,?)', date_start, date_end, 0, client_id, servece, emplo, equip, quantity)
+                        conn.commit()
+                        add_contract.destroy()
+
+                        table.delete(*table.get_children())
+                        cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount from tblContract where intClientId =?', client_id)
+                        i=1 
+                        while(1): 
+                            result = str(cur.fetchone()) 
+                            if(result == "None"): 
+                                break 
+                            j = 0 
+                            while(j != len(result)): 
+                                if(result[j] == ' ' and result[j-1] != ','): 
+                                    result = result[:j] + '_' + result[j + 1:] 
+                                j+=1 
+                            replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','') 
+                            table.insert(parent='',index='end',iid=i, values=replaced) 
+                            i+=1 
+                    except:
+                        print('error_contract')
+                
+
             add_contract = ct.CTkToplevel()
             add_contract.grab_set()
             add_contract.title('Заключить договор')
-            add_contract.geometry('500x500')
-            ct.CTkLabel(add_contract, text='ЭТО, ДРУГАЛЕК, РЕАЛИЗУЙ САМ').grid(column=2,row=0)
+            add_contract.geometry('800x500')
+            
+
+            ct.CTkLabel(add_contract, text='Дата начала').grid(column=2,row=0)
+            date_start = Calendar(add_contract, selectmode = 'day')
+            date_start.grid(column=2,row=1)
+
+            ct.CTkLabel(add_contract, text='Дата конца').grid(column=2,row=2)
+            date_end = Calendar(add_contract, selectmode = 'day')
+            date_end.grid(column=2,row=3)
+
+            ct.CTkLabel(add_contract, text='Сервис').place(x=280, y=0)
+            cur.execute('select intServiceId, txtServiceName from tblService')
+            serveces = {}
+            while(1):
+                res = str(cur.fetchone())
+                if(res == "None"):
+                    break
+                res = res.replace(')','').replace('(','').replace('\'','')
+                res1 = res.split(',')
+                serveces[res1[1]] = res1[0]
+            servecesBox = ct.CTkComboBox(add_contract,width=225, state='readonly', values=list(serveces.keys()))
+            servecesBox.place(x=420, y=0)
+
+            ct.CTkLabel(add_contract, text='Сотрудник').place(x=280, y=50)
+            cur.execute('select intEmployeeId,txtEmployeeFIO from tblEmployee')
+            emplo = {}
+            while(1):
+                res = str(cur.fetchone())
+                if(res == "None"):
+                    break
+                res = res.replace(')','').replace('(','').replace('\'','')
+                res1 = res.split(',')
+                emplo[res1[1]] = res1[0]
+            emploBox = ct.CTkComboBox(add_contract,width=225, state='readonly', values=list(emplo.keys()))
+            emploBox.place(x=420, y=50)
+
+            ct.CTkLabel(add_contract, text='Оборудование').place(x=280, y=100)
+            cur.execute('select intEquipmentId,txtEquipmentName from tblEquipment')
+            equip = {}
+            while(1):
+                res = str(cur.fetchone())
+                if(res == "None"):
+                    break
+                res = res.replace(')','').replace('(','').replace('\'','')
+                res1 = res.split(',')
+                equip[res1[1]] = res1[0]
+            equipBox = ct.CTkComboBox(add_contract,width=225, state='readonly', values=list(equip.keys()))
+            equipBox.place(x=420, y=100)
+
+            ct.CTkLabel(add_contract, text='Кол-во оборудования').place(x=280, y=150)
+            quantity = ct.CTkEntry(add_contract,width=45, validate="key")
+            quantity.place(x=420, y=150)
+
+            ct.CTkButton(add_contract, text='Заключить', command=
+                              lambda: add_contract1(date_start.get_date(), date_end.get_date(), str(serveces[servecesBox.get()]),str(emplo[emploBox.get()]),
+                                str(equip[equipBox.get()]), quantity.get())).place(x=320, y=200)
 
         def print_contract(*args): # печать договора
-            def ithog_print_contract(): # ф-я, где распечатывается договор (делается pdf-ка)
-                print('ЭТО, ДРУГАЛЕК, РЕАЛИЗУЙ САМ')
+
+            def update_contract(id): 
+                try:
+                    cur.execute('update tblContract set isContractCompleted = 1 where intContractId = ?', id)
+                    conn.commit()
+                    print_contract.destroy()
+
+                    table.delete(*table.get_children())
+                    cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount from tblContract where intClientId =?', client_id)
+                    i=1 
+                    while(1): 
+                        result = str(cur.fetchone()) 
+                        if(result == "None"): 
+                            break 
+                        j = 0 
+                        while(j != len(result)): 
+                            if(result[j] == ' ' and result[j-1] != ','): 
+                                result = result[:j] + '_' + result[j + 1:] 
+                            j+=1 
+                        replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','') 
+                        table.insert(parent='',index='end',iid=i, values=replaced) 
+                        i+=1 
+                except:
+                    print('error_claim')
             def close():
                 print_contract.destroy()
 
             curRow = table.focus()
-            
+            contract_id = table.item(curRow, 'values')[0]
+            flag = table.item(curRow, 'values')[3]
+            if flag =="True":
+                return
             print_contract = ct.CTkToplevel()
             print_contract.grab_set()
             print_contract.title('Подтверждение печати')
             print_contract.geometry('450x100')
-            ct.CTkLabel(print_contract, text='Распечатать договор?').grid(column=2,row=0)
+            ct.CTkLabel(print_contract, text='Завершить договор?').grid(column=2,row=0)
+
             ct.CTkButton(print_contract, text='Да', 
-                    command= lambda:ithog_print_contract()).grid(column=0,row=3)
+                    command= lambda:update_contract(contract_id)).grid(column=0,row=3)
+            
             ct.CTkButton(print_contract, text='Нет', 
                     command= close).grid(column=3,row=3)
             
@@ -344,6 +464,7 @@ def main_frame(client_id, client_name):
     ct.CTkButton(main, text='Список договоров', command=contract).grid(column=0,row=0, pady=5)
     ct.CTkButton(main, text='Список претензий', command=claim).grid(column=0,row=1,pady=5)
     ct.CTkButton(main, text='Привязать сотрудника к договору', command=log_off).grid(column=0,row=2, pady=5)
+    ct.CTkButton(main, text='Распечатать договор', command=log_off).grid(column=0,row=3, pady=5)
     
     
 login_frame()
