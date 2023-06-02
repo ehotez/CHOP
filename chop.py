@@ -282,13 +282,20 @@ def main_frame(client_id, client_name):
         contracts.geometry('1000x500')
         frame = Frame(contracts)
         frame.pack(pady=20)
-        table = ttk.Treeview(frame,height = 7,columns=('', 'Start', 'End', 'Flag','', '', '', 'Amount'))
+        table = ttk.Treeview(frame,height = 12)
         table.pack(side='left')
 
         sb = ttk.Scrollbar(frame, orient="vertical", command=table.yview)
+        
+        s = ttk.Style()
+        s.theme_use('clam')
+        s.configure('Vertical.TScrollbar', troughcolor='gray', bordercolor='gray', background='gray')
+        s.configure('Horizontal.TScrollbar', troughcolor='gray', bordercolor='gray', background='gray')
+        table["columns"] = ('', 'Start', 'End', 'Flag','', '', '', 'Amount')
+        
         table.configure(yscrollcommand=sb.set)
         sb.pack(side="right", fill='y') 
-
+        
         table.column('#0', width=0, stretch=NO)
         table.column('#1', width=0, stretch=NO)
         table.column('#5', width=0, stretch=NO)
@@ -419,18 +426,26 @@ def main_frame(client_id, client_name):
         claim = ct.CTkToplevel()
         claim.grab_set()
         claim.title('Претензии клиента: '+ client_name)
-        claim.geometry('900x500')
+        claim.geometry('900x300')
         frame = Frame(claim)
         frame.pack(pady=20)
-        table = ttk.Treeview(frame, height=7,columns=('', 'Desceiption', 'Flag', 'Date'))
+        table = ttk.Treeview(frame, height=7)
         table.pack(side='left')
 
         sb = ttk.Scrollbar(frame, orient="vertical", command=table.yview)
+        
+        s = ttk.Style()
+        s.theme_use('clam')
+        s.configure('Vertical.TScrollbar', troughcolor='gray', bordercolor='gray', background='gray')
+        s.configure('Horizontal.TScrollbar', troughcolor='gray', bordercolor='gray', background='gray')
+        table["columns"] = ('', 'Desceiption', 'Flag', 'Date')
+
         table.configure(yscrollcommand=sb.set)
         sb.pack(side="right", fill='y') 
         
         table.column('#0', width=0, stretch=NO)
         table.column('#1', width=0, stretch=NO)
+        table.column('#2', width=400)
         table.heading('Desceiption', text='Наименование претензии', anchor=CENTER)
         table.heading('Flag', text='Флаг закрытия', anchor=CENTER)
         table.heading('Date', text='Дата', anchor=CENTER)
