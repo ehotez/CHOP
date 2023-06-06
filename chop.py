@@ -7,8 +7,8 @@ from tkinter import messagebox
 from tkinter import CENTER, LEFT, Frame, ttk
 
 # Установление соединения с базой данной HI HI HA HA
-conn = pyodbc.connect(driver='{SQL Server}', server='MSI',
-                      database='dbCHOP', user='sa', password='sa')
+conn = pyodbc.connect(driver='{SQL Server}', server='AHMATHUYAWEI\MSI',
+                      database='dbCHOP', user='sa', password='kooMaeK5')
 cur = conn.cursor()
 
 ct.set_appearance_mode('dark')
@@ -153,6 +153,7 @@ def login_frame():
                 j += 1
             replaced = result.replace(')', '').replace(
                 '(', '').replace('\'', '').replace(',', '')
+
             table.insert(parent='', index='end', iid=i, values=replaced)
             i += 1
         table.pack()
@@ -198,8 +199,7 @@ def main_frame(client_id, client_name):
                         add_contract.destroy()
 
                         table.delete(*table.get_children())
-                        cur.execute(
-                            'select intContractId, dateContractStart, dateContractEnd, isContractCompleted, intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount from tblContract where intClientId =?', client_id)
+                        cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, tblContract.intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount, txtServiceName from tblContract, tblService where intClientId =? and tblContract.intServiceId = tblService.intServiceId', client_id)
                         i = 1
                         while (1):
                             result = str(cur.fetchone())
@@ -212,6 +212,14 @@ def main_frame(client_id, client_name):
                                 j += 1
                             replaced = result.replace(')', '').replace(
                                 '(', '').replace('\'', '').replace(',', '')
+                            if replaced[1] == ' ':
+                                replaced = '0000000'+replaced
+                            elif replaced[2] == ' ':
+                                replaced = '000000'+replaced
+                            elif replaced[3] == ' ':
+                                replaced = '00000'+replaced
+                            elif replaced[4] == ' ':
+                                replaced = '0000'+replaced
                             table.insert(parent='', index='end',
                                          iid=i, values=replaced)
                             i += 1
@@ -292,7 +300,7 @@ def main_frame(client_id, client_name):
                     print_contract.destroy()
 
                     table.delete(*table.get_children())
-                    cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount from tblContract where intClientId =?', client_id)
+                    cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, tblContract.intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount, txtServiceName from tblContract, tblService where intClientId =? and tblContract.intServiceId = tblService.intServiceId', client_id)
                     i = 1
                     while (1):
                         result = str(cur.fetchone())
@@ -305,6 +313,14 @@ def main_frame(client_id, client_name):
                             j += 1
                         replaced = result.replace(')', '').replace(
                             '(', '').replace('\'', '').replace(',', '')
+                        if replaced[1] == ' ':
+                            replaced = '0000000'+replaced
+                        elif replaced[2] == ' ':
+                            replaced = '000000'+replaced
+                        elif replaced[3] == ' ':
+                            replaced = '00000'+replaced
+                        elif replaced[4] == ' ':
+                            replaced = '0000'+replaced
                         table.insert(parent='', index='end',
                                      iid=i, values=replaced)
                         i += 1
@@ -332,11 +348,17 @@ def main_frame(client_id, client_name):
             ct.CTkButton(print_contract, text='Нет',
                          command=close).grid(column=3, row=3)
 
-        cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount from tblContract where intClientId =?', client_id)
+            ct.CTkButton(print_contract, text='Да',
+                         command=lambda: update_contract(contract_id)).grid(column=0, row=3)
+
+            ct.CTkButton(print_contract, text='Нет',
+                         command=close).grid(column=3, row=3)
+
+        cur.execute('select intContractId, dateContractStart, dateContractEnd, isContractCompleted, tblContract.intServiceId, intEmployeeId, intEquipmentId, intEquipmentAmount, txtServiceName from tblContract, tblService where intClientId =? and tblContract.intServiceId = tblService.intServiceId', client_id)
         contracts = ct.CTkToplevel()
         contracts.grab_set()
         contracts.title('Контракт клиента: ' + client_name)
-        contracts.geometry('1000x500')
+        contracts.geometry('1500x500')
         frame = Frame(contracts)
         frame.pack(pady=20)
         table = ttk.Treeview(frame, height=12)
@@ -350,20 +372,26 @@ def main_frame(client_id, client_name):
                     bordercolor='gray', background='gray')
         s.configure('Horizontal.TScrollbar', troughcolor='gray',
                     bordercolor='gray', background='gray')
-        table["columns"] = ('', 'Start', 'End', 'Flag', '', '', '', 'Amount')
+        table["columns"] = ('Num', 'Start', 'End', 'Flag',
+                            '', '', '', 'Amount', 'Serv')
 
         table.configure(yscrollcommand=sb.set)
         sb.pack(side="right", fill='y')
 
         table.column('#0', width=0, stretch=NO)
-        table.column('#1', width=0, stretch=NO)
+        # table.column('#1', width=0, stretch=NO)
         table.column('#5', width=0, stretch=NO)
         table.column('#6', width=0, stretch=NO)
         table.column('#7', width=0, stretch=NO)
+        table.column('#8', width=150)
+        table.column('#9', width=400)
+        table.column('#1', width=150)
+        table.heading('Num', text='Номер договора', anchor=CENTER)
         table.heading('Start', text='Дата заключения договора', anchor=CENTER)
         table.heading('End', text='Дата окончания договора', anchor=CENTER)
         table.heading('Flag', text='Контракт завершен?', anchor=CENTER)
         table.heading('Amount', text='Кол-во оборудования', anchor=CENTER)
+        table.heading('Serv', text='Сервис', anchor=CENTER)
         table.bind('<Double-Button-1>', print_contract)
         ct.CTkButton(contracts, text='Заключить договор',
                      command=form_add_contract).pack()
@@ -371,6 +399,7 @@ def main_frame(client_id, client_name):
         i = 1
         while (1):
             result = str(cur.fetchone())
+
             if (result == "None"):
                 break
             j = 0
@@ -380,6 +409,15 @@ def main_frame(client_id, client_name):
                 j += 1
             replaced = result.replace(')', '').replace(
                 '(', '').replace('\'', '').replace(',', '')
+            if replaced[1] == ' ':
+                replaced = '0000000'+replaced
+            elif replaced[2] == ' ':
+                replaced = '000000'+replaced
+            elif replaced[3] == ' ':
+                replaced = '00000'+replaced
+            elif replaced[4] == ' ':
+                replaced = '0000'+replaced
+
             table.insert(parent='', index='end', iid=i, values=replaced)
             i += 1
         table.pack()
@@ -476,7 +514,7 @@ def main_frame(client_id, client_name):
             add_claim = ct.CTkToplevel()
             add_claim.grab_set()
             add_claim.title('Добавить претензию')
-            add_claim.geometry('500x500')
+            add_claim.geometry('300x500')
 
             ct.CTkLabel(add_claim, text='Наименование претензии:').grid(
                 column=0, row=0)
