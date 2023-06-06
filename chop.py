@@ -14,7 +14,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from tkinter.filedialog import asksaveasfilename
 
 # Установление соединения с базой данной HI HI HA HA
-conn = pyodbc.connect(driver='{SQL Server}', server='SHIDZUO',
+conn = pyodbc.connect(driver='{SQL Server}', server='MSI',
                       database='dbCHOP', user='sa', password='sa')
 cur = conn.cursor()
 
@@ -716,7 +716,7 @@ def main_frame(client_id, client_name):
             date_claim.grid(column=0, row=3)
 
             ct.CTkButton(add_claim, text='Добавить', command=lambda: add_claim1(
-                name_claim.get(), date_claim.get_date())).grid(column=0, row=8)
+                name_claim.get(), date_claim.get_date())).grid(column=0, row=8, pady=5)
 
         cur.execute(
             'select intClaimId, txtClaimDescprition, isClaimClosed, dateClaimStart from tblClaim where (intClientId=?)', client_id)
@@ -782,10 +782,7 @@ def main_frame(client_id, client_name):
                  command=contract).grid(column=0, row=0, pady=5)
     ct.CTkButton(main, text='Список претензий',
                  command=claim).grid(column=0, row=1, pady=5)
-    ct.CTkButton(main, text='Привязать сотрудника к договору',
-                 command=log_off).grid(column=0, row=2, pady=5)
-    ct.CTkButton(main, text='Распечатать договор',
-                 command=log_off).grid(column=0, row=3, pady=5)
+
 
 
 login_frame()
