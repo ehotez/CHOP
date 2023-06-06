@@ -7,8 +7,8 @@ from tkinter import messagebox
 from tkinter import CENTER, LEFT, Frame, ttk
 
 # Установление соединения с базой данной HI HI HA HA
-conn = pyodbc.connect(driver='{SQL Server}', server='AHMATHUYAWEI\MSI',
-                      database='dbCHOP', user='sa', password='kooMaeK5')
+conn = pyodbc.connect(driver='{SQL Server}', server='MSI',
+                      database='dbCHOP', user='sa', password='sa')
 cur = conn.cursor()
 
 ct.set_appearance_mode('dark')
