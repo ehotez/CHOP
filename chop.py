@@ -340,13 +340,13 @@ def main_frame(client_id, client_name):
             contract_end_date = row[2]
             equipment_quantity = row[7]
             service_name = row[8]
-            contract_number = str(row[0]).zfill(10)
+            contract_number = str(row[0]).zfill(8)
             # Параграфы с текстом договора
             text = f"""
 
         Договор номер {contract_number}
 
-        Заказчик: {client_name}
+        Заказчик: {client_name.replace("_", " ")}
 
         Исполнитель: "Международная Охранная Компания"
 
@@ -355,14 +355,14 @@ def main_frame(client_id, client_name):
         1.1. Исполнитель обязуется предоставить Заказчику услугу {service_name}.
         1.2. Услуги будут оказываться на объекте Заказчика, указанном в приложении к настоящему договору.
         1.3. Исполнитель обязуется выполнять услуги качественно, с соблюдением всех требований и норм, действующих в области охраны.
-        
+
         Сроки и условия:
 
         2.1. Договор вступает в силу с {contract_start_date} и действует до {contract_end_date}.
         2.2. Заказчик обязуется предоставить Исполнителю необходимую информацию, доступы и условия для оказания услуги.
         2.3. Исполнитель обязуется оказывать услугу в соответствии с договором в течение указанного срока.
         2.4. Заказчик обязуется оплатить услуги Исполнителя в соответствии с условиями, оговоренными в настоящем договоре.
-        
+
         Оборудование:
 
         3.1. В случае необходимости, Исполнитель может предоставить Заказчику оборудование для охраны объекта. Количество оборудования составляет {equipment_quantity} единиц.
@@ -496,10 +496,10 @@ def main_frame(client_id, client_name):
         table.bind('<Double-Button-1>', print_contract)
 
         ct.CTkButton(contracts, text='Заключить договор',
-                     command=form_add_contract).pack()
+                     command=form_add_contract).pack(pady = 5)
         
         ct.CTkButton(contracts, text='Создать документ договора', 
-            command= partial(create_pdf_contract, table)).pack()
+            command= partial(create_pdf_contract, table)).pack(pady = 5)
 
         i = 1
         while (1):
