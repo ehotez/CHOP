@@ -302,9 +302,9 @@ def main_frame(client_id, client_name):
                 return
             row = table.item(table.selection())['values']
             options = {
-                'initialfile': 'Contract.pdf',  # Начальное имя файла
-                'defaultextension': '.pdf',  # Расширение файла по умолчанию
-                'filetypes': [('PDF', '.pdf')]  # Доступные типы файлов
+                'initialfile': 'Contract.pdf',
+                'defaultextension': '.pdf',
+                'filetypes': [('PDF', '.pdf')]
             }
             file_path = asksaveasfilename(**options )
 
@@ -335,6 +335,15 @@ def main_frame(client_id, client_name):
             # Заголовок договора
             title = Paragraph("ДОГОВОР", custom_style_title)
             doc_title = [title, Spacer(1, 12)]
+            
+            equimpent = ""
+            cur.execute('select txtEquipmentName from tblEquipment where intEquipmentId = ?', row[6])
+            while (1):
+                res = str(cur.fetchone())
+                if (res == "None"):
+                    break
+                res = res.replace(')', '').replace('(', '').replace('\'', '').replace(',', '')
+                equimpent = str(res)
 
             contract_start_date = row[1]
             contract_end_date = row[2]
@@ -365,7 +374,7 @@ def main_frame(client_id, client_name):
 
         Оборудование:
 
-        3.1. В случае необходимости, Исполнитель может предоставить Заказчику оборудование для охраны объекта. Количество оборудования составляет {equipment_quantity} единиц.
+        3.1. Исполнитель предоставляет оборудование {equimpent} Заказчику для охраны объекта. Количество оборудования составляет {equipment_quantity} единиц.
         3.2. Заказчик обязуется обеспечить сохранность предоставленного оборудования и использовать его только в целях обеспечения безопасности объекта.
 
         Конфиденциальность:
