@@ -5,9 +5,16 @@ import customtkinter as ct
 from tkinter.messagebox import NO
 from tkinter import messagebox
 from tkinter import CENTER, LEFT, Frame, ttk
+from functools import partial
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from tkinter.filedialog import asksaveasfilename
 
 # Установление соединения с базой данной HI HI HA HA
-conn = pyodbc.connect(driver='{SQL Server}', server='MSI',
+conn = pyodbc.connect(driver='{SQL Server}', server='SHIDZUO',
                       database='dbCHOP', user='sa', password='sa')
 cur = conn.cursor()
 
@@ -290,6 +297,100 @@ def main_frame(client_id, client_name):
             ct.CTkButton(add_contract, text='Заключить', command=lambda: add_contract1(date_start.get_date(), date_end.get_date(), str(serveces[servecesBox.get()]), str(emplo[emploBox.get()]),
                                                                                        str(equip[equipBox.get()]), quantity.get())).place(x=320, y=200)
 
+        def create_pdf_contract(table):
+            if not table.selection():
+                return
+            row = table.item(table.selection())['values']
+            options = {
+                'initialfile': 'Contract.pdf',  # Начальное имя файла
+                'defaultextension': '.pdf',  # Расширение файла по умолчанию
+                'filetypes': [('PDF', '.pdf')]  # Доступные типы файлов
+            }
+            file_path = asksaveasfilename(**options )
+
+            if not file_path:
+                return
+
+            doc = SimpleDocTemplate(file_path, pagesize=letter)
+            styles = getSampleStyleSheet()
+
+            # Загружаем кириллический шрифт
+            font_path = "C:\Windows\Fonts\Arial.ttf"
+
+            pdfmetrics.registerFont(TTFont("CustomFont", font_path))
+
+            # Создаем стиль для кириллического текста
+            custom_style = ParagraphStyle(
+                name="CustomStyle",
+                parent=styles["Normal"],
+                fontName="CustomFont"
+            )
+
+            custom_style_title = ParagraphStyle(
+                name="CustomStyle",
+                parent=styles["Title"],
+                fontName="CustomFont"
+            )
+
+            # Заголовок договора
+            title = Paragraph("ДОГОВОР", custom_style_title)
+            doc_title = [title, Spacer(1, 12)]
+
+            contract_start_date = row[1]
+            contract_end_date = row[2]
+            equipment_quantity = row[7]
+            service_name = row[8]
+            contract_number = str(row[0]).zfill(10)
+            # Параграфы с текстом договора
+            text = f"""
+
+        Договор номер {contract_number}
+
+        Заказчик: {client_name}
+
+        Исполнитель: "Международная Охранная Компания"
+
+        Предмет договора:
+
+        1.1. Исполнитель обязуется предоставить Заказчику услугу {service_name}.
+        1.2. Услуги будут оказываться на объекте Заказчика, указанном в приложении к настоящему договору.
+        1.3. Исполнитель обязуется выполнять услуги качественно, с соблюдением всех требований и норм, действующих в области охраны.
+        
+        Сроки и условия:
+
+        2.1. Договор вступает в силу с {contract_start_date} и действует до {contract_end_date}.
+        2.2. Заказчик обязуется предоставить Исполнителю необходимую информацию, доступы и условия для оказания услуги.
+        2.3. Исполнитель обязуется оказывать услугу в соответствии с договором в течение указанного срока.
+        2.4. Заказчик обязуется оплатить услуги Исполнителя в соответствии с условиями, оговоренными в настоящем договоре.
+        
+        Оборудование:
+
+        3.1. В случае необходимости, Исполнитель может предоставить Заказчику оборудование для охраны объекта. Количество оборудования составляет {equipment_quantity} единиц.
+        3.2. Заказчик обязуется обеспечить сохранность предоставленного оборудования и использовать его только в целях обеспечения безопасности объекта.
+
+        Конфиденциальность:
+
+        4.1. Стороны обязуются сохранять конфиденциальность информации, полученной в процессе выполнения настоящего договора, и не разглашать ее третьим лицам без предварительного письменного согласия другой стороны.
+
+        Заключительные положения:
+
+        5.1. Любые изменения и дополнения к настоящему договору действительны только в письменной форме и подписываются обеими сторонами.
+        5.2. В случае возникновения споров, стороны будут стремиться решить их путем переговоров. При невозможности достижения согласия споры рассматриваются в соответствии с действующим законодательством.
+
+        Подписи сторон:
+        
+        Заказчик ____________ Исполнитель ____________
+        """
+            
+            content = []
+            paragraphs = text.split("\n\n")
+            for paragraph in paragraphs:
+                p = Paragraph(paragraph, custom_style)
+                content.append(p)
+                content.append(Spacer(1, 12))
+
+            doc.build(doc_title + content)
+
         def print_contract(*args):  # печать договора
 
             def update_contract(id):
@@ -393,8 +494,12 @@ def main_frame(client_id, client_name):
         table.heading('Amount', text='Кол-во оборудования', anchor=CENTER)
         table.heading('Serv', text='Сервис', anchor=CENTER)
         table.bind('<Double-Button-1>', print_contract)
+
         ct.CTkButton(contracts, text='Заключить договор',
                      command=form_add_contract).pack()
+        
+        ct.CTkButton(contracts, text='Создать документ договора', 
+            command= partial(create_pdf_contract, table)).pack()
 
         i = 1
         while (1):
