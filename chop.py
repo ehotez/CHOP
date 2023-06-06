@@ -68,34 +68,110 @@ def register_employee():
             messagebox.showerror(
                 'Пустые поля', 'Заполните все пустые поля!')
             return
-        try:
-            cur.execute('INSERT INTO tblEmployee (txtEmployeeFio, txtEmployeePassport, txtEmployeePhone, intEmployeeExperience) VALUES (?,?,?,?)',
-                        fio, passport, phone, 0)
-            conn.commit()
-            reg.destroy()
-            messagebox.showinfo(
-                'Успешно!', 'Сотрудник успешно добавлен!')
-        except:
-            messagebox.showerror(
-                'Ошибка', 'Произошла ошибка при добавлении сотрудника.')
+        else:
+            try:
+                cur.execute('INSERT INTO tblEmployee (txtEmployeeFio, txtEmployeePassport, txtEmployeePhone, intEmployeeExperience) VALUES (?,?,?,?)',
+                            fio, passport, phone, 0)
+                conn.commit()
+                reg.destroy()
+                messagebox.showinfo('Успешно!', 'Сотрудник успешно добавлен!')
+            except:
+                messagebox.showerror(
+                    'Ошибка', 'Произошла ошибка при добавлении сотрудника.')
+
+    def filter_table():
+        search_text = fio.get().lower()
+        table.delete(*table.get_children())  # Удаляем все записи из таблицы
+        for row in employee_rows:
+            # Проверить, содержит ли ФИО подстроку поиска
+            if search_text in row[1].lower():
+                table.insert('', 'end', values=row)
+
+    def show_all():
+        # Очистить таблицу перед отображением всех записей
+        table.delete(*table.get_children())
+        for row in employee_rows:
+            table.insert('', 'end', values=row)
 
     reg = ct.CTkToplevel()
     reg.grab_set()
     reg.title('Добавление сотрудника')
-    reg.geometry('800x400')
-    ct.CTkLabel(reg, text='ФИО:').grid(column=0, row=0)
-    fio = ct.CTkEntry(reg, width=250)
-    fio.grid(column=0, row=1)
-    ct.CTkLabel(reg, text='Паспортные данные:').grid(column=0, row=2)
-    passport = ct.CTkEntry(reg)
-    passport.grid(column=0, row=3)
-    ct.CTkLabel(reg, text='Номер телефона:').grid(column=0, row=4)
-    phone = ct.CTkEntry(reg)
-    phone.grid(column=0, row=5)
-    ct.CTkButton(reg, text='Создать сотрудника', command=lambda: new_employee(
-        fio.get(), passport.get(), phone.get())).grid(column=0, row=6, pady=15)
+    reg.geometry('1000x500')
 
-    reg.grid_columnconfigure(0, weight=1)
+    # Создание фрейма для левых виджетов
+    left_frames = ct.CTkFrame(reg)
+    left_frames.pack(side='left', padx=10, pady=10)
+    # Создание таблицы сотрудников
+    frame_table = ct.CTkFrame(left_frames)
+    frame_table.pack(side='top', padx=10, pady=10)
+
+    table = ttk.Treeview(frame_table, height=7, columns=(
+        '', 'Name', 'Experience', 'Passport', 'Phone'))
+    table.pack(side='left')
+
+    sb = ttk.Scrollbar(frame_table, orient="vertical", command=table.yview)
+    table.configure(yscrollcommand=sb.set)
+    table.tag_configure('visible', foreground='black')
+    table.tag_configure('hidden', foreground='white')
+    sb.pack(side="right", fill='y')
+
+    # Создание фрейма с кнопками
+    frame_buttons = ct.CTkFrame(left_frames)
+    frame_buttons.pack(side='bottom', padx=10, pady=10)
+
+    # Создание кнопки "Поиск по ФИО"
+    search_button = ct.CTkButton(
+        frame_buttons, text='Поиск по ФИО', command=filter_table)
+    search_button.pack(side='left', padx=5)
+
+    # Создание кнопки "Показать все"
+    show_all_button = ct.CTkButton(
+        frame_buttons, text='Показать все', command=show_all)
+    show_all_button.pack(side='left', padx=5)
+
+    table.column('#0', width=0, stretch=tk.NO)
+    table.column('#1', width=0, stretch=tk.NO)
+    table.column('Name', width=150, stretch=tk.NO)
+    table.column('Experience', width=100, stretch=tk.NO)
+    table.column('Passport', width=150, stretch=tk.NO)
+    table.column('Phone', width=150, stretch=tk.NO)
+    table.heading('Name', text='ФИО', anchor=tk.CENTER)
+    table.heading('Experience', text='Опыт', anchor=tk.CENTER)
+    table.heading('Passport', text='Паспортные данные', anchor=tk.CENTER)
+    table.heading('Phone', text='Номер телефона', anchor=tk.CENTER)
+
+    cur.execute(
+        'SELECT intEmployeeId, txtEmployeeFio, intEmployeeExperience, txtEmployeePassport, txtEmployeePhone FROM tblEmployee')
+    employee_rows = []
+    for row in cur.fetchall():
+        values = [str(val).replace("'", "").replace(
+            ",", "").replace(")", "") for val in row]
+        employee_rows.append(values)
+        table.insert('', 'end', values=values)
+
+    # Создание окна добавления сотрудника
+    frame_add_employee = ct.CTkFrame(reg)
+    frame_add_employee.pack(side='right', padx=20, pady=20)
+
+    ct.CTkLabel(frame_add_employee, text='ФИО:').grid(column=0, row=0)
+
+    fio = ct.CTkEntry(frame_add_employee, width=250)
+    fio.grid(column=0, row=1)
+
+    ct.CTkLabel(frame_add_employee, text='Паспортные данные:').grid(
+        column=0, row=2)
+
+    passport = ct.CTkEntry(frame_add_employee)
+    passport.grid(column=0, row=3)
+
+    ct.CTkLabel(frame_add_employee, text='Номер телефона:').grid(
+        column=0, row=4)
+
+    phone = ct.CTkEntry(frame_add_employee)
+    phone.grid(column=0, row=5)
+
+    ct.CTkButton(frame_add_employee, text='Создать сотрудника', command=lambda: new_employee(
+        fio.get(), passport.get(), phone.get())).grid(column=0, row=6, pady=15)
 
 
 def login_frame():
