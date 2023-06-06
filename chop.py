@@ -110,6 +110,7 @@ def login_frame():
                     result = result[:j] + '_' + result[j + 1:]
                 j+=1
             replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','')
+            
             table.insert(parent='',index='end',iid=i, values=replaced)
             i+=1
         table.pack()
@@ -163,6 +164,14 @@ def main_frame(client_id, client_name):
                                     result = result[:j] + '_' + result[j + 1:] 
                                 j+=1 
                             replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','') 
+                            if replaced[1] ==' ':
+                                replaced = '0000000'+replaced
+                            elif replaced[2] ==' ':
+                                replaced = '000000'+replaced
+                            elif replaced[3] ==' ':
+                                replaced = '00000'+replaced
+                            elif replaced[4] ==' ':
+                                replaced = '0000'+replaced
                             table.insert(parent='',index='end',iid=i, values=replaced) 
                             i+=1 
                     except:
@@ -251,6 +260,14 @@ def main_frame(client_id, client_name):
                                 result = result[:j] + '_' + result[j + 1:] 
                             j+=1 
                         replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','') 
+                        if replaced[1] ==' ':
+                            replaced = '0000000'+replaced
+                        elif replaced[2] ==' ':
+                            replaced = '000000'+replaced
+                        elif replaced[3] ==' ':
+                            replaced = '00000'+replaced
+                        elif replaced[4] ==' ':
+                            replaced = '0000'+replaced
                         table.insert(parent='',index='end',iid=i, values=replaced) 
                         i+=1 
                 except:
@@ -279,7 +296,7 @@ def main_frame(client_id, client_name):
         contracts = ct.CTkToplevel()
         contracts.grab_set()
         contracts.title('Контракт клиента: '+ client_name)
-        contracts.geometry('1200x500')
+        contracts.geometry('1500x500')
         frame = Frame(contracts)
         frame.pack(pady=20)
         table = ttk.Treeview(frame,height = 12)
@@ -291,18 +308,20 @@ def main_frame(client_id, client_name):
         s.theme_use('clam')
         s.configure('Vertical.TScrollbar', troughcolor='gray', bordercolor='gray', background='gray')
         s.configure('Horizontal.TScrollbar', troughcolor='gray', bordercolor='gray', background='gray')
-        table["columns"] = ('', 'Start', 'End', 'Flag','', '', '', 'Amount', 'Serv')
+        table["columns"] = ('Num', 'Start', 'End', 'Flag','', '', '', 'Amount', 'Serv')
         
         table.configure(yscrollcommand=sb.set)
         sb.pack(side="right", fill='y') 
         
         table.column('#0', width=0, stretch=NO)
-        table.column('#1', width=0, stretch=NO)
+        #table.column('#1', width=0, stretch=NO)
         table.column('#5', width=0, stretch=NO)
         table.column('#6', width=0, stretch=NO)
         table.column('#7', width=0, stretch=NO)
         table.column('#8', width=150)
         table.column('#9', width=400)
+        table.column('#1', width=150)
+        table.heading('Num', text='Номер договора', anchor=CENTER)
         table.heading('Start', text='Дата заключения договора', anchor=CENTER)
         table.heading('End', text='Дата окончания договора', anchor=CENTER)
         table.heading('Flag', text='Контракт завершен?', anchor=CENTER)
@@ -316,6 +335,7 @@ def main_frame(client_id, client_name):
         i=1
         while(1):
             result = str(cur.fetchone())
+            
             if(result == "None"):
                 break
             j = 0
@@ -324,6 +344,15 @@ def main_frame(client_id, client_name):
                     result = result[:j] + '_' + result[j + 1:]
                 j+=1
             replaced = result.replace(')','').replace('(','').replace('\'','').replace(',','')
+            if replaced[1] ==' ':
+                replaced = '0000000'+replaced
+            elif replaced[2] ==' ':
+                replaced = '000000'+replaced
+            elif replaced[3] ==' ':
+                replaced = '00000'+replaced
+            elif replaced[4] ==' ':
+                replaced = '0000'+replaced
+            
             table.insert(parent='',index='end',iid=i, values=replaced)
             i+=1
         table.pack()
